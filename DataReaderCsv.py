@@ -24,7 +24,25 @@ class DataReaderCsv:
         self.group_tag_dict = {}  # group tag dictionary, key: value = group name: [start, end] index (absolute index)
         self.data_tag_dict = {}  # data tag dictionary, {layer1-1: [layer2-1, layer2-2, ...], layer1-2: [...], ...}
         self.all_data = {}  # all data
+        self.group_list = []  # list of group tags
+        self.data_tag1_list = []  # list of data tag 1, cells
+        self.data_tag2_list = []  # list of data tag 2, markers
         self.read_data()
+        self.generate_all_tag_list()
+
+    def generate_all_tag_list(self):
+        """
+        get all tags in the data
+        :return: a list of all tags in the data
+        """
+        data_tag2_temp_dict = {}
+        for group_tag in self.group_tag_dict:
+            self.group_list.append(group_tag)
+        for data_tag in self.data_tag_dict:
+            self.data_tag1_list.append(data_tag)
+            for sub_tag in self.data_tag_dict[data_tag]:
+                data_tag2_temp_dict[sub_tag] = 1
+        self.data_tag2_list = list(data_tag2_temp_dict.keys())
 
     def read_data(self):
         # read csv line by line
@@ -46,7 +64,7 @@ class DataReaderCsv:
                     self.all_data[group_tag + '|' + data_tag] = np.array(row[self.group_tag_dict[group_tag][0]:
                                                                              self.group_tag_dict[group_tag][1]],
                                                                          dtype=np.float64)
-            print(len(list(self.all_data.items())))
+            # print(len(list(self.all_data.items())))
 
     def get_data(self, data_tag_list):
         """
@@ -61,27 +79,20 @@ class DataReaderCsv:
             if tag.lower() == 'all':
                 list_of_individual_tag.append([])
                 if index == 0:
-                    for group_tag in self.group_tag_dict:
-                        list_of_individual_tag[index].append(group_tag)
+                    list_of_individual_tag[index] = self.group_list
                 elif index == 1:
-                    for data_tag in self.data_tag_dict:
-                        list_of_individual_tag[index].append(data_tag)
+                    list_of_individual_tag[index] = self.data_tag1_list
                 elif index == 2:
-                    temp_dict = {}
-                    for data_tag in self.data_tag_dict:
-                        for sub_tag in self.data_tag_dict[data_tag]:
-                            temp_dict[sub_tag] = 1
-                    list_of_individual_tag[index] = list(temp_dict.keys())
+                    list_of_individual_tag[index] = self.data_tag2_list
             else:
                 list_of_individual_tag.append([tag])
+        data_to_return = {}
         for group_tag_get in list_of_individual_tag[0]:
             for data_tag_get in list_of_individual_tag[1]:
                 for sub_tag_get in list_of_individual_tag[2]:
-                    list_of_data_to_get.append(group_tag_get + '|' + data_tag_get + '|' + sub_tag_get)
-        data_to_return = {}
-        for data_tag in list_of_data_to_get:
-            if data_tag in self.all_data:
-                data_to_return[data_tag] = self.all_data[data_tag]
+                    final_tag = group_tag_get + '|' + data_tag_get + '|' + sub_tag_get
+                    if final_tag in self.all_data:
+                        data_to_return[final_tag] = self.all_data[final_tag]
         return data_to_return
 
     def get_group_range(self, group_header):
@@ -114,4 +125,6 @@ class DataReaderCsv:
 if __name__ == '__main__':
     drs = DataReaderCsv('MiceCYTOF.csv')
     print(drs.get_data(['all', 'BCell', 'pERK']))
-    print(len(drs.get_data(['all', 'all', 'all'])))
+    print(drs.group_list)
+    print(drs.data_tag1_list)
+    print(drs.data_tag2_list)
