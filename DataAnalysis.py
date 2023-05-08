@@ -8,6 +8,7 @@
 """
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import colors
 
 from DataReaderCsv import DataReaderCsv
 
@@ -23,6 +24,7 @@ class DataAnalysis:
     do data analysis
     """
     FILE_PATH = 'MiceCYTOF.csv'
+    CONTROL_GROUP = 'Naïve'
 
     def __init__(self):
         self.all_columns = {}
@@ -60,14 +62,20 @@ class DataAnalysis:
         sorted_mean_dict = sorted(mean_dict.items(), key=lambda kv: (kv[1], kv[0]), reverse=True)
         sorted_dict = {}
         for i, point in enumerate(sorted_mean_dict):
-            sorted_dict[point[0]] = {'seq': i, 'mean': point[1]}
+            percent_from_control = 0
+            if self.CONTROL_GROUP not in point[0]:
+                control_for_point = point[0].replace(point[0].split('|')[0], self.CONTROL_GROUP)
+                control_data = self.data_reader.get_data(control_for_point.split('|'))
+                percent_from_control = (np.mean(mean_dict[point[0]]) - np.mean(control_data[control_for_point])) / \
+                                        np.mean(control_data[control_for_point])
+            sorted_dict[point[0]] = {'seq': i, 'mean': point[1], 'percent_from_control': percent_from_control}
         return sorted_dict
 
     def get_surface_data(self, all_data_tag_index, surface_name, plot_type):
         """
         get surface data
         :param plot_type: seq or mean
-        :param all_data_tag_index: 0, 1, 2
+        :param all_data_tag_index: 0, 1, 2, which axis is the focused variable
         :param surface_name: what is the focused variable of the surface
         :return: surfaced data, x label, y label
         """
@@ -84,14 +92,14 @@ class DataAnalysis:
                 column_tag_list = ['all', 'all', 'all']
                 column_tag_list[temp_xy_index[0]] = i
                 column_tag_list[temp_xy_index[1]] = j
-                print(column_tag_list)
+                #print(column_tag_list)
                 point_tag = []
                 for t in column_tag_list:
                     if t != 'all':
                         point_tag.append(t)
                     else:
                         point_tag.append(surface_name)
-                print(point_tag)
+                #print(point_tag)
                 row.append(self.all_columns['|'.join(column_tag_list)]['|'.join(point_tag)][plot_type])
             surface_data.append(row)
         return np.array(surface_data), xy_label[temp_xy_index[1]], xy_label[temp_xy_index[0]]
@@ -116,17 +124,27 @@ class DataAnalysis:
             for i in range(0, subplot_row):
                 for j in range(0, subplot_col):
                     surface_data, x, y = self.get_surface_data(index, axis[tick_no], plot_type)
-                    print(surface_data)
-                    print(x)
-                    print(y)
+                    #print(surface_data)
+                    #print(x)
+                    #print(y)
                     if subplot_row == 1 or subplot_col == 1:
-                        p = axs[tick_no].imshow(surface_data, cmap=color_map)
+                        p = 0
+                        # if plot_type == 'percent_from_control', we need to put the center of the color bar at 0
+                        if plot_type == 'percent_from_control':
+                            p = axs[tick_no].imshow(surface_data, cmap=color_map, norm=colors.CenteredNorm())
+                        else:
+                            p = axs[tick_no].imshow(surface_data, cmap=color_map)
                         plt.colorbar(p, ax=axs[tick_no])
                         axs[tick_no].set_xticks(np.arange(len(x)), x, rotation=60)
                         axs[tick_no].set_yticks(np.arange(len(y)), y)
                         axs[tick_no].set_title(f'{axis[tick_no]},')
                     else:
-                        p = axs[i, j].imshow(surface_data, cmap=color_map)
+                        p = 0
+                        # if plot_type == 'percent_from_control', we need to put the center of the color bar at 0
+                        if plot_type == 'percent_from_control':
+                            p = axs[i, j].imshow(surface_data, cmap=color_map, norm=colors.CenteredNorm())
+                        else:
+                            p = axs[i, j].imshow(surface_data, cmap=color_map)
                         plt.colorbar(p, ax=axs[i, j])
                         axs[i, j].set_xticks(np.arange(len(x)), x, rotation=60)
                         axs[i, j].set_yticks(np.arange(len(y)), y)
@@ -140,4 +158,5 @@ if __name__ == '__main__':
     data_analysis.generate_all_columns()
     print(len(data_analysis.all_columns))
     data_analysis.plot_surface('mean')
-    data_analysis.plot_surface('seq')
+    #data_analysis.plot_surface('seq')
+    data_analysis.plot_surface('percent_from_control', color_map='RdYlGn')

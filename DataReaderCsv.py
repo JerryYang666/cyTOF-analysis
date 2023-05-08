@@ -124,7 +124,7 @@ class DataReaderCsv:
 
 if __name__ == '__main__':
     drs = DataReaderCsv('MiceCYTOF.csv')
-    print(drs.get_data(['all', 'BCell', 'pERK']))
+    print(drs.get_data(['CLP (IL7V)', 'BCell', 'pERK']))
     print(drs.get_data(['CLP (IL7V)', 'all', 'pERK']))
     print(drs.get_data(['CLP (IL7V)', 'BCell', 'all']))
     print(drs.group_list)
