@@ -2,7 +2,7 @@
 # -*-coding:utf-8 -*-
 """
 @file: DataAnalysis.py
-@author: Jerry(Ruihuang)Yang + Jay Siva
+@author: Jerry(Ruihuang)Yang and Jayant Siva
 @email: rxy216@case.edu
 @time: 5/22/23 20:56
 """
