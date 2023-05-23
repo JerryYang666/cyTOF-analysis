@@ -2,13 +2,14 @@
 # -*-coding:utf-8 -*-
 """
 @file: DataAnalysis.py
-@author: Jerry(Ruihuang)Yang
+@author: Jerry(Ruihuang)Yang + Jay Siva
 @email: rxy216@case.edu
-@time: 5/4/23 20:56
+@time: 5/22/23 20:56
 """
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
+import seaborn as sns
 
 from DataReaderCsv import DataReaderCsv
 
