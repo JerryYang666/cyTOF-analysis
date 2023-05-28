@@ -114,7 +114,7 @@ class DataAnalysis:
             color_map = 'Blues_r'
         for index, axis in enumerate(self.all_data_tags):
             #  get subplot row and col
-            subplot_row, subplot_col = closest_factors(len(axis))
+            subplot_row, subplot_col = closest_factors(len(axis)) # type: ignore
             # Set up the plot
             fig, axs = plt.subplots(nrows=subplot_row, ncols=subplot_col,
                                     figsize=(subplot_col * 8, subplot_row * 8),
